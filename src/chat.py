@@ -38,7 +38,7 @@ def main():
                 print("[chat] ⚠️ Por favor, digite uma pergunta válida.")
                 continue
             
-            print("[chat] ⏳ Processando...")
+            print(f"\n[chat] ⏳ Processando...")
           
             response = search_prompt(question)
             display_response(question, response)
