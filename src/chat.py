@@ -1,19 +1,36 @@
 from search import search_prompt
 
-def main():
+
+def render_header():
     print("=" * 100)
     print("Desafio RAG - Ingestão e Busca")
     print("=" * 100)
     print("Digite 'sair' para encerrar")
     print("=" * 100)
-    
+
+
+def exit_requested(question):
+    return question.lower() in ["sair", "exit", "quit"]
+
+
+def display_response(question, response):
+    print(f"\n{'=' * 100}")
+    print(f"PERGUNTA: {question}")
+    print("=" * 100)
+    print(f"RESPOSTA:\n{response}")
+    print("=" * 100)
+
+
+def main():
+    render_header()
+
     print(f"\n[chat] ▶️ Iniciando o sistema")
     
     while True:
         try:
-            question = input("\nFaça sua pergunta: ").strip()
+            question = input("\n[chat] Digite sua pergunta (ou 'sair' para encerrar): ").strip()
             
-            if question.lower() in ["sair", "exit", "quit"]:
+            if exit_requested(question):
                 print("[chat] 👋 Encerrando o sistema. Até mais!")
                 break
             
@@ -24,12 +41,7 @@ def main():
             print("[chat] ⏳ Processando...")
           
             response = search_prompt(question)
-            
-            print(f"\n{'=' * 50}")
-            print(f"PERGUNTA: {question}")
-            print("=" * 50)
-            print(f"RESPOSTA:\n{response}")
-            print("=" * 50)
+            display_response(question, response)
             
         except Exception as e:
             print(f"[chat] ❌ Ocorreu um erro: {str(e)}")

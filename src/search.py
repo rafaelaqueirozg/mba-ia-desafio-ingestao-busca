@@ -42,40 +42,52 @@ PERGUNTA DO USUÁRIO:
 RESPONDA A "PERGUNTA DO USUÁRIO"
 """
 
+NO_CONTEXT_MESSAGE = "Não tenho informações necessárias para responder sua pergunta."
+
 def get_context(results):
     print(f"[search] ⏳​ Construindo o contexto para a resposta...")
 
-    docs = []
-    for item, (doc) in results:
-        doc = item.page_content.strip()
-        
-        if doc:
-            docs.append(doc)
+    docs = [
+        item.page_content.strip()
+        for item, _score in results
+        if item.page_content and item.page_content.strip()
+    ]
 
-    return "\n\n---\n\n".join(docs)
+    return "\n\n".join(docs)
+
+
+def search_docs(store, question, k=10):
+    print(f"[search] 🔍 Realizando busca por similaridade no PGVector...")
+    return store.similarity_search_with_score(question, k=k)
+
+
+def create_pgvector_store(embeddings):
+    return PGVector(
+        embeddings=embeddings,
+        collection_name=env_vars["PG_VECTOR_COLLECTION_NAME"],
+        connection=env_vars["DATABASE_URL"],
+        use_jsonb=True,
+    )
 
 def search_prompt(question=None):
     print(f"[search] ▶️​ Iniciando processo de busca e resposta...")
+
+    if not question:
+        return NO_CONTEXT_MESSAGE
     
     try:
         embeddings = embedding_factory()
-        
-        store = PGVector(
-            embeddings=embeddings,
-            collection_name=env_vars["PG_VECTOR_COLLECTION_NAME"],
-            connection=env_vars["DATABASE_URL"],
-            use_jsonb=True,
-        )
-        
-        print(f"[search] 🔍 Realizando busca por similaridade no PGVector...")
-        
-        results = store.similarity_search_with_score(question, k=10)
+        store = create_pgvector_store(embeddings)
+        results = search_docs(store, question, k=10)
         
         if not results:
             print(f"[search] ⚠️​ Nenhum resultado encontrado para a pergunta: {question}")
-            return "Não tenho informações necessárias para responder sua pergunta."
+            return NO_CONTEXT_MESSAGE
         
         context = get_context(results)
+        
+        if not context:
+            return NO_CONTEXT_MESSAGE
         
         query = PROMPT_TEMPLATE.format(contexto=context, pergunta=question)
         
@@ -85,7 +97,7 @@ def search_prompt(question=None):
         print(f"[search] ✅ Resposta gerada com sucesso.")
         
         return response.content
-    
+        
     except Exception as e:
         print(f"[search] ❌ Erro durante o processo de busca: {str(e)}")
         raise SystemExit(1)
