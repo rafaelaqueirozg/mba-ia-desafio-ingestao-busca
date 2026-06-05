@@ -1,18 +1,9 @@
 from dotenv import load_dotenv
-from utils.env import require_env_vars
-from utils.embedding import embedding_factory
 from utils.llm import llm_factory
-
-from langchain_postgres import PGVector
+from utils.vector_store import create_pgvector_store
 
 # Carrega as variáveis de ambiente
 load_dotenv()
-
-# Valida e recupera as variáveis de ambiente necessárias
-env_vars = require_env_vars([
-    "DATABASE_URL",
-    "PG_VECTOR_COLLECTION_NAME"
-])
 
 # Template de prompt para a busca
 PROMPT_TEMPLATE = """
@@ -61,14 +52,6 @@ def search_docs(store, question, k=10):
     return store.similarity_search_with_score(question, k=k)
 
 
-def create_pgvector_store(embeddings):
-    return PGVector(
-        embeddings=embeddings,
-        collection_name=env_vars["PG_VECTOR_COLLECTION_NAME"],
-        connection=env_vars["DATABASE_URL"],
-        use_jsonb=True,
-    )
-
 def search_prompt(question=None):
     print(f"[search] ▶️​ Iniciando processo de busca e resposta...")
 
@@ -76,8 +59,7 @@ def search_prompt(question=None):
         return NO_CONTEXT_MESSAGE
     
     try:
-        embeddings = embedding_factory()
-        store = create_pgvector_store(embeddings)
+        store = create_pgvector_store()
         results = search_docs(store, question, k=10)
         
         if not results:

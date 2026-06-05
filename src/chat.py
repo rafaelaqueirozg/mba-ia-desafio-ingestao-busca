@@ -1,6 +1,5 @@
 from search import search_prompt
 
-
 def render_header():
     print("=" * 100)
     print("Desafio RAG - Ingestão e Busca")

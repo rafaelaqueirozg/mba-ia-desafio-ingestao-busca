@@ -45,6 +45,7 @@ flowchart LR
 	- `chunk_overlap=150`
 - Geração de embeddings por factory (`embedding_factory`) para desacoplar o provedor do restante do pipeline.
 - Persistência no PostgreSQL com extensão `pgvector` via `PGVector`.
+- Configuração do banco vetorial centralizada em `src/utils/vector_store.py` por meio da função `create_pgvector_store`, reutilizada na ingestão e na busca.
 
 ### 🔎 Recuperação semântica (retrieval)
 
@@ -321,7 +322,8 @@ mba-ia-desafio-ingestao-busca/
 		└── utils/
 				├── embedding.py        # Factory de embedding 
 				├── env.py              # Validação das variáveis de ambiente obrigatórias
-				└── llm.py              # Factory de LLM
+				├── llm.py              # Factory de LLM
+				└── vector_store.py     # Factory compartilhada do PGVector
 ```
 
 ## 📝 Licença
